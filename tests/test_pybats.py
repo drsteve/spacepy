@@ -26,7 +26,7 @@ import spacepy.pybats.gitm as gitm
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
-           'TestExtraction']
+           'TestExtraction', 'RamTests']
 
 class TestParseFileTime(unittest.TestCase):
     '''
@@ -35,7 +35,7 @@ class TestParseFileTime(unittest.TestCase):
     '''
 
     from datetime import datetime as dt
-    
+
     files = ['mag_grid_e20130924-232600.out',
              'y=0_mhd_1_e20130924-220500-054.out',
              'y=0_mhd_2_t00001430_n00031073.out',
@@ -52,7 +52,7 @@ class TestParseFileTime(unittest.TestCase):
         from spacepy.pybats import parse_filename_time
         for f, d, t, i in zip(self.files, self.dates, self.times, self.iters):
             self.assertEqual( parse_filename_time(f), (i,t,d) )
-        
+
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
@@ -81,7 +81,7 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
-            
+
     def testAscii(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(
@@ -121,14 +121,14 @@ class TestRim(unittest.TestCase):
               's_I'    :-8.211648588249157e-10,
               's_Iup'  :0.2517603660687805,
               's_Idown':-0.2517603668899454}
-    
+
     def testReadZip(self):
         from spacepy.pybats import rim
 
         # Open file:
         iono=rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                    'it000321_104510_000.idl.gz'))
-        
+
 
     def testReadAscii(self):
         import gzip
@@ -155,7 +155,7 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
         iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it_wrapped.idl.gz'))
-                
+
     def testIonoCalc(self):
         '''Test calculations made by rim.Iono objects.'''
         from spacepy.pybats import rim
@@ -170,7 +170,7 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-        
+
         iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it000321_104510_000.idl.gz'))
         out = iono.add_cont('n_jr', add_cbar=True)
@@ -179,18 +179,18 @@ class TestRim(unittest.TestCase):
         self.assertTrue(isinstance(out[1], plt.Axes))
         self.assertTrue(isinstance(out[2], mpl.contour.QuadContourSet))
         self.assertTrue(isinstance(out[3], mpl.colorbar.Colorbar))
-        
+
 class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
     '''
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'))
-    
+
     def testCalc(self):
         # Test all calculations:
         self.mhd.calc_all()
-        
+
     def testMultispecies(self):
         # Open file:
         mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
@@ -209,7 +209,7 @@ class TestBats2d(unittest.TestCase):
 
     def testPlotting(self):
         '''
-        Create a contour plot, add stream traces with arrows, 
+        Create a contour plot, add stream traces with arrows,
         close plot, pass if no Exceptions.  This is a basic test that
         ensures that all methods and functions underlying contours and
         field line tracing are at least operating to completion.
@@ -240,7 +240,7 @@ class TestBats2d(unittest.TestCase):
         self.assertEqual(
             'Start value 150 out of range for variable z.',
             str(cm.exception))
-        
+
 class TestMagGrid(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
@@ -293,7 +293,7 @@ class TestMagGrid(unittest.TestCase):
         m2.calc_h()
         self.assertAlmostEqual(self.knownDbhMax, m1['dBh'].max())
         self.assertAlmostEqual(self.knownDbhMax, m2['dBh'].max())
-        
+
 class TestSatOrbit(unittest.TestCase):
     '''
     Test reading and writing of satellite orbit files.
@@ -361,7 +361,7 @@ class TestSatOrbit(unittest.TestCase):
         # Check time and position:
         assert_array(sat['time'], self.time)
         assert_array(sat['xyz'],  self.pos)
-    
+
 class TestVirtSat(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.VirtSat` to ensure opening, handling,
@@ -391,7 +391,7 @@ class TestVirtSat(unittest.TestCase):
         sat.calc_ndens()
         self.assertTrue('N' in sat)
         self.assertEqual(100, sat['oFrac'][0]+sat['hFrac'][0]+sat['heFrac'][0])
-        
+
 class TestImfInput(unittest.TestCase):
     '''
     Test reading, writing, and plotting from ImfInput files.
@@ -425,7 +425,7 @@ class TestImfInput(unittest.TestCase):
         # Create an IMF object from scratch, fill with zeros.
         imf = pb.ImfInput()
         for key in imf: imf[key]=[0]
-        
+
         # Add a sub-millisecond time:
         imf['time'] = [dt.datetime(2017,9,6,16,42,36,999600)]
 
@@ -435,12 +435,12 @@ class TestImfInput(unittest.TestCase):
 
         # Test for floor of sub-millisecond times:
         self.assertEqual(self.knownSubMilli, imf2['time'][0])
-            
+
     def testWrite(self):
         # Test that files are correctly written to file.
-        
+
         from numpy.testing import assert_array_equal as assert_array
-        
+
         # Save original file names:
         old_file_1 = self.sing.attrs['file']
         old_file_2 = self.mult.attrs['file']
@@ -460,8 +460,8 @@ class TestImfInput(unittest.TestCase):
             assert_array(self.sing[v], sing[v])
         for v in mult:
             assert_array(self.mult[v], mult[v])
-        
-        
+
+
     def testOpen(self):
         # Test single fluid/default variable names:
         self.assertEqual(self.knownImfBz[0],   self.sing['bz'][0])
@@ -509,7 +509,7 @@ class TestImfInput(unittest.TestCase):
                 self.assertEqual(self.mult['time'].size, self.mult[v].size)
             else:
                 self.assertEqual(self.mult[v].size, npts)
-        
+
 class TestExtraction(unittest.TestCase):
     '''
     Test Extraction class by opening a file with known solution.
@@ -517,7 +517,7 @@ class TestExtraction(unittest.TestCase):
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
                                            'pybats_test', 'z0_sine.out'))
-    
+
     def testExtract(self):
         analytic = lambda x: 1.+.5*np.cos(x*np.pi/10.)
         extr = self.mhd.extract(range(-5, 6),[-8]*11)
@@ -535,10 +535,10 @@ class TestGitm(unittest.TestCase):
     time  = dt.datetime(2015, 3, 16, 20, 1, 8)
     shape = (18,18)
     lat1  = 1.48352986
-    
+
     def testBinary(self):
         '''
-        This tests the ability to open a file and correctly read the attributes and 
+        This tests the ability to open a file and correctly read the attributes and
         variables as well as properly reshape the arrays and remove unused dimensions.
         '''
         # Open 2D file:
@@ -552,18 +552,22 @@ class TestGitm(unittest.TestCase):
         self.assertEqual(self.shape, f['Longitude'].shape)
         self.assertAlmostEqual(   self.lat1, f['Latitude'][0,-1], 6)
         self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
-        
-class RampyTests(unittest.TestCase):
+
+class RamTests(unittest.TestCase):
     '''
-    Tests for pybats.rampy
+    Tests for pybats.ram
     '''
     def setUp(self):
-        super(RampyTests, self).setUp()
+        super().setUp()
         self.testfile = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'ramsat_test.nc')
+        self.ramlog = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                   'ramlog_test.log')
+        self.scbdst = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                   'scbdst_test.txt')
 
     def tearDown(self):
-        super(RampyTests, self).tearDown()
+        super().tearDown()
 
     def test_RamSat_load(self):
         '''Test that RAM satellite netCDF will load'''
@@ -616,6 +620,40 @@ class RampyTests(unittest.TestCase):
         expected = '00:02 UT\n04:35 MLT\n-13.4$^{\circ}$ MLat\nR=5.05 $R_{E}$'
         self.assertEqual(expected, fmtstr)
 
+    def test_ram_load_log(self):
+        '''Test that RAM primary log file will load'''
+        data = ram.LogFile(self.ramlog)
+
+    def test_ram_load_scblog(self):
+        '''Test that SCB Dst log file will load'''
+        data = ram.LogFile(self.scbdst)
+
+    def test_nlines_ramlog(self):
+        '''Test that RAM log file has correct elements'''
+        data = ram.LogFile(self.ramlog)
+        self.assertTrue('dstRam' in data)
+        self.assertTrue('dstBiot' in data)
+        self.assertEqual((20,), data['dstRam'].shape)
+
+    def test_nlines_scblog(self):
+        '''Test that SCB Dst log file has correct elements'''
+        data = ram.LogFile(self.scbdst)
+        self.assertTrue('dstDPS' in data)
+        self.assertTrue('dstBiot' in data)
+        self.assertEqual((20,), data['dstDPS'].shape)
+
+    def test_ramlog_runtimes(self):
+        '''Test that RAM log file interprets simulation time steps'''
+        data = ram.LogFile(self.ramlog)
+        exp_steps = np.arange(60, 1201, 60).astype(float)
+        numpy.testing.assert_allclose(data['runtime'], exp_steps)
+
+    def test_ramlog_times(self):
+        '''Test that RAM log file interprets times'''
+        data = ram.LogFile(self.ramlog)
+        exp_times = [dt.datetime(2013, 3, 17, 0, nmin) for nmin in range(1, 21)]
+        numpy.testing.assert_equal(data['time'], exp_times)
+
+
 if __name__=='__main__':
     unittest.main()
-
