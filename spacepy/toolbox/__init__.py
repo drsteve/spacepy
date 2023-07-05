@@ -127,7 +127,7 @@ def unique_columns(inval, axis=0):
     unique_a = np.unique(b).view(val.dtype).reshape(-1, val.shape[1])
     return unique_a
 
-    
+
 def hypot(*args):
     """
     compute the N-dimensional hypot of an iterable or many arguments
@@ -423,7 +423,7 @@ def loadpickle(fln):
         try:
             import zlib
             with open(fln, 'rb') as fh:
-                stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS) 
+                stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS)
                 try: #Py3k
                     return pickle.loads(stream, encoding='latin1')
                 except TypeError:
@@ -810,7 +810,7 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
 
 def _get_qindenton_daily(qd_daily_url=None, cached=True, startyear=None):
     """Download the Qin-Denton OMNI-like daily files
-    
+
     Parameters
     ----------
     qd_daily_url : str (optional)
@@ -1559,6 +1559,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     """
     #check inputs and initialize
     #Set resolution to 1 if no times supplied
+    import dateutil.relativedelta as dur
     if len(time) == 0:
         startpt, res = 0, 1
         time = list(range(len(data)))
@@ -1568,8 +1569,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
             raise ValueError('windowmean error: data and time must have same length')
         #First check if datetime objects
         try:
-            assert type(winsize) == datetime.timedelta
-            assert type(overlap) == datetime.timedelta
+            assert type(winsize) in [datetime.timedelta, dur.relativedelta]
+            assert type(overlap) in [datetime.timedelta, dur.relativedelta]
         except AssertionError:
             raise TypeError('windowmean error: winsize/overlap must be timedeltas if a time array is supplied.')
         pts = False #force time-based averaging
@@ -1579,6 +1580,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     #now actually do windowing mean
     outdata, outtime = [], []
     data = np.array(data)
+    tstt = datetime.datetime(2000, 1, 1)  # test time for relativedelta comp
     if pts:
         #loop for fixed number of points in window
         try:
@@ -1615,7 +1617,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
             startpt = st_time
         else:
             startpt = time[0]
-        if overlap >= winsize:
+        if overlap+tstt >= winsize+tstt:
             raise ValueError('Overlap requested greater than size of window')
         while startpt < time[-1]:
             getinds = tOverlapHalf([startpt,startpt+winsize-delta], time, presort=True)
@@ -1624,7 +1626,11 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
                 getmean = op(getdata.compressed()) #find mean excluding NaNs
             else:
                 getmean = np.nan
-            gettime = startpt + winsize//2 #new timestamp -floordiv req'd with future division
+            try:
+                gettime = startpt + winsize//2  # new timestamp -floordiv req'd with future division
+            except TypeError:  # relativedelta can't be divided, so we have to work around
+                binlength = (startpt + winsize) - startpt
+                gettime = startpt + binlength//2
             startpt = startpt + winsize - overlap #advance window start
             lastpt = startpt + winsize
             outdata.append(getmean) #construct output arrays
@@ -1641,7 +1647,7 @@ def medAbsDev(series, scale=False):
     MAD is preferred to the inter-quartile range as the inter-quartile
     range only shows 50% of the data whereas the MAD uses all data but
     remains robust and resistant. See e.g. Wilks, Statistical methods
-    for the Atmospheric Sciences, 1995, Ch. 3. For additional details on 
+    for the Atmospheric Sciences, 1995, Ch. 3. For additional details on
     the scaling, see Rousseeuw and Croux, J. Amer. Stat. Assoc., 88 (424),
     pp. 1273-1283, 1993.
 
@@ -2649,8 +2655,8 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
 
     Interface is similar to multiprocessing.map, except it runs in threads
 
-    This is made largely obsolete in python3 by from concurrent import futures 
-    
+    This is made largely obsolete in python3 by from concurrent import futures
+
     Examples
     --------
     find totals of several arrays
@@ -2670,7 +2676,7 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     #0
     #50
     #99
-   
+
     Parameters
     ----------
     target : callable
@@ -2880,7 +2886,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
             self._kwargs = kwargs
             self._retval = None
             self._exception = None
-            
+
         def run(self):
             try:
                 self._retval = self._target(*self._args, **self._kwargs)
@@ -2895,7 +2901,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
                 except AttributeError:
                     raise (self._exception[1], None, self._exception[2])
             return self._retval
-            
+
     t = ReturningThread(None, target, None, args, kwargs)
     t.start()
     retval = t.join(timeout)
